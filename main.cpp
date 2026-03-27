@@ -4,7 +4,7 @@
 #include <math.h>
 #include <vector>
 
-const Vector2 windowSize = {1000, 800};
+const Vector2 windowSize = {1400, 900};
 const float res = 20.0f;
 
 float min(float a, float b){
@@ -68,10 +68,12 @@ Vector3 normalNoise(Vector2 a, float n){
 
 struct Particle{
     Vector2 pos = {0};
+    Vector2 posI = {0};
     Vector2 vel = {0};
     float r = 1.0f;
     Color color = {219, 0, 190, 255};
     float life = 0.0f;
+    float lifeSpan = 3.0f;
     void Update(std::vector<Vector2> field){
         Vector2 indexPos = Vector2Scale(pos, 1.0f / res);
         //bilinear interpolation
@@ -84,11 +86,17 @@ struct Particle{
         vel = Vector2Lerp(Vector2Lerp(v1, v2, f2), Vector2Lerp(v3, v4, f2), f1);
     }
     void Move(float dt){
-        pos = Vector2Add(pos, Vector2Scale(vel, 100.0f * dt));
+        pos = Vector2Add(pos, Vector2Scale(vel, 200.0f * dt));
         life += dt;
     }
     void Draw(){
-        DrawCircle(pos.x, pos.y, r, color);
+        float length = Vector2Length(vel);
+        float f = length / (0.25f + length);
+        Color color1 = {234, 252, 154, 255};
+        Color color2 = {221, 158, 255, 255};
+        color = ColorLerp(color1, color2, f);
+        posI = Vector2Add(pos, Vector2Scale(vel, 10.0f / length));
+        DrawLineEx(pos, posI, 3.0f, color);
     }
 };
 
@@ -164,7 +172,7 @@ void AddParticle(std::vector<Particle>& particles, float dist, float spacing){
 void CheckParticles(std::vector<Particle>& particles){
     for(auto i = particles.begin(); i != particles.end();) {
         auto& a = *i;
-        if(a.pos.x < 0.0f || a.pos.y < 0.0f || a.pos.x > windowSize.x || a.pos.y > windowSize.y || a.life > 10.0f){
+        if(a.pos.x < 0.0f || a.pos.y < 0.0f || a.pos.x > windowSize.x || a.pos.y > windowSize.y || a.life > a.lifeSpan){
             i = particles.erase(i);
         }else{
             ++i;
@@ -199,10 +207,10 @@ int main(){
         dt = GetFrameTime();
         t += dt;
         BeginDrawing();
-        ClearBackground({15, 18, 18, 255});
+        DrawRectangle(0, 0, windowSize.x, windowSize.y, {15, 18, 18, 30});
 //        DrawNoise();
         if(IsMouseButtonDown(MOUSE_BUTTON_LEFT)){
-            AddParticle(particles, 10.0f, 10.0f);
+            AddParticle(particles, 10.0f, 2.0f);
         }
         CheckParticles(particles);
         if(int(t / 10.0f) % 1 == 0){
@@ -210,7 +218,7 @@ int main(){
         }
         MoveParticles(particles, dt);
         DrawParticles(particles);
-        DrawArrowGrid(directions);
+//        DrawArrowGrid(directions);
 
         EndDrawing();
     }
