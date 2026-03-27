@@ -7,6 +7,12 @@
 const Vector2 windowSize = {1000, 800};
 const float res = 20.0f;
 
+float min(float a, float b){
+    return (a < b) ? a : b;
+}
+float max(float a, float b){
+    return (a > b) ? a : b;
+}
 float fract(float a){
     return a - floor(a);
 }
@@ -63,7 +69,7 @@ Vector3 normalNoise(Vector2 a, float n){
 struct Particle{
     Vector2 pos = {0};
     Vector2 vel = {0};
-    float r = 5.0f;
+    float r = 1.0f;
     Color color = {219, 0, 190, 255};
     float life = 0.0f;
     void Update(std::vector<Vector2> field){
@@ -128,7 +134,6 @@ void GenerateArrowGrid(std::vector<Vector2>& directions){
         }
     }
 }
-
 void DrawArrowGrid(std::vector<Vector2> directions){
     for(int i = 0; i <= windowSize.x / res; i++){
         for(int j = 0; j <= windowSize.y / res; j++){
@@ -143,8 +148,18 @@ void DrawArrowGrid(std::vector<Vector2> directions){
     }
 }
 
-void AddParticle(std::vector<Particle>& particles){
-    particles.push_back({GetMousePosition()});
+void AddParticle(std::vector<Particle>& particles, float dist, float spacing){
+    for(float x = -dist / 2; x < dist / 2; x++){
+        for(float y = -dist / 2; y < dist / 2; y++){
+            Vector2 currPos = Vector2Add(GetMousePosition(), {x * spacing, y * spacing});
+            Vector2 newPos = {0};
+            newPos.x = min(max(0.0f, currPos.x), windowSize.x);
+            newPos.y = min(max(0.0f, currPos.y), windowSize.y);
+            if(newPos == currPos){
+                particles.push_back({newPos});
+            }
+        }
+    }
 }
 void CheckParticles(std::vector<Particle>& particles){
     for(auto i = particles.begin(); i != particles.end();) {
@@ -179,6 +194,7 @@ int main(){
     SetTargetFPS(60);
     float dt = 0.0f;
     float t = 0.0f;
+    GenerateArrowGrid(directions);
     while(!WindowShouldClose()){
         dt = GetFrameTime();
         t += dt;
@@ -186,7 +202,7 @@ int main(){
         ClearBackground({15, 18, 18, 255});
 //        DrawNoise();
         if(IsMouseButtonDown(MOUSE_BUTTON_LEFT)){
-            AddParticle(particles);
+            AddParticle(particles, 10.0f, 10.0f);
         }
         CheckParticles(particles);
         if(int(t / 10.0f) % 1 == 0){
@@ -194,7 +210,6 @@ int main(){
         }
         MoveParticles(particles, dt);
         DrawParticles(particles);
-        GenerateArrowGrid(directions);
         DrawArrowGrid(directions);
 
         EndDrawing();
