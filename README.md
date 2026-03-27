@@ -1,0 +1,3 @@
+It would be nice to get into fluid simulations, but they seem unreachable. At least for vector fields, I have yet no idea of curl, divergence and gradient at its highest. 
+Now this simulation just generates a noise texture, treats it like a heightmap and generates normal vectors from it. Then I just project those normal vectors on xy, this creates an illusion of random structured vector field. Then I decided to add particles that will flow according to this field.
+Just now the obvious idea came to me, that I can update the velocity less frequently, but move a particle according to its already calculated velocity (calculate the velocity once per second but move a particle every frame).
